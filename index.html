@@ -237,6 +237,18 @@ async function loadManifest(){
 }
 // spec de estímulo do objeto "oi" na versão de estudo/alvo (imagem a, ou shape procedural)
 function objStim(oi){ const o = S.pool[oi]; return STIM.mode==='image' ? {img:o.a} : {shape:o}; }
+// particiona o banco em k subconjuntos FIXOS e disjuntos (formas A/B/C paralelas),
+// balanceados por bin e determinísticos (ordenados por id, sem aleatoriedade)
+function partitionPool(pairs, k){
+  const byBin = {1:[],2:[],3:[],4:[],5:[]};
+  pairs.forEach(p=>{ if(byBin[p.bin]) byBin[p.bin].push(p); });
+  const parts = Array.from({length:k}, ()=> []);
+  let t = 0;
+  for(const b of [1,2,3,4,5]){
+    byBin[b].slice().sort((x,y)=> x.id < y.id ? -1 : 1).forEach(p=>{ parts[t % k].push(p); t++; });
+  }
+  return parts;
+}
 // renderiza um spec ({img} ou {shape}) num nó DOM; o tamanho é controlado pelo CSS do contêiner
 function renderStim(stim, sizeCss){
   if(stim && stim.img){
@@ -276,8 +288,12 @@ function buildSession(pid, form, enableRel){
   const lureBinOf = {};   // objIndex -> bin (para o modo imagem)
 
   if(STIM.mode === 'image'){
-    // ---- modo imagem: pool = pares MST (cada par tem bin empírico) ----
-    pool = STIM.pairs;
+    // ---- modo imagem: pool = partição FIXA do banco por forma (A/B/C disjuntas) ----
+    const need = N_ENCODE + CONFIG.nFoils + CONFIG.practiceN;
+    const parts = partitionPool(STIM.pairs, 3);
+    const fi = Math.max(0, ['A','B','C'].indexOf(form));
+    const chosen = parts[fi % parts.length];
+    pool = (chosen && chosen.length >= need) ? chosen : STIM.pairs;  // fallback se a partição for pequena demais
     // iscas estratificadas por bin, para cobrir os 5 níveis de similaridade
     const byBin = {1:[],2:[],3:[],4:[],5:[]};
     pool.forEach((p,i)=>{ if(byBin[p.bin]) byBin[p.bin].push(i); });
@@ -357,7 +373,7 @@ function buildSession(pid, form, enableRel){
   return {
     meta:{ participant_id:pid||('anon-'+uuid().slice(0,8)), session_id:uuid(), form, seed,
            started:new Date().toISOString(), device:deviceInfo(), config:CONFIG,
-           enableRelational:enableRel, stimulus_mode:STIM.mode },
+           enableRelational:enableRel, stimulus_mode:STIM.mode, form_pool_n:pool.length },
     pool, cellOf,
     encodeOrder, itemOrder, placeOrder, relTrials, practice, preloadUrls,
     targetItems, lureItems, foilIdx,

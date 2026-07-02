@@ -287,7 +287,7 @@ Para curvas de esquecimento ou modelos mistos, acrescente `lme4`; para psicometr
 - **Não é dispositivo médico** nem ferramenta diagnóstica; é um instrumento de pesquisa em desenvolvimento.
 - **Sem normatização**: os escores são **brutos**, sem correção por idade, escolaridade, sexo ou dispositivo.
 - **Estímulos paramétricos**: úteis para prototipagem, mas **os bins de similaridade precisam de calibração empírica local** para o limiar de separação ter significado; os cortes/AUCs precisam ser derivados na população-alvo.
-- **Formas A/B/C** atualmente variam apenas a semente de geração, não conjuntos calibrados independentes.
+- **Formas A/B/C** usam **partições fixas e disjuntas** do banco de imagens (balanceadas por bin), servindo como formas paralelas sem sobreposição de itens para reteste/validação; dentro de cada forma, a ordem e os papéis ainda variam pela semente. *(No fallback procedural, A/B/C variam apenas a semente.)*
 - **Privacidade**: os dados existem apenas na memória do navegador até a exportação. Não colete dados identificáveis sem consentimento e aprovação ética.
 
 ---
