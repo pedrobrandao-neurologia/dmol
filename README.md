@@ -70,7 +70,7 @@ Duração ~7–10 minutos, sessão única. Uma máquina de estados controla as f
 
 1. **Tela inicial** — identificação do participante, forma (A/B/C) e bloco relacional opcional.
 2. **Instruções + prática** — 3 objetos, com feedback (única etapa com feedback).
-3. **Codificação incidental** — 24 objetos, um por vez, cada um numa célula da grade (2500 ms + ISI 500 ms). Julgamento incidental ("Onde você encontraria este objeto? Dentro/fora de casa" — o clássico do MST; no fallback procedural vira "arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
+3. **Codificação incidental** — 24 objetos, um por vez, cada um numa célula da grade (3750 ms + ISI 500 ms). Julgamento incidental ("Onde você encontraria este objeto? Dentro/fora de casa" — o clássico do MST; no fallback procedural vira "arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
 4. **Distrator** — comparação de magnitude numérica por ~45 s (esvazia a memória de trabalho).
 5. **Discriminação de item** — 36 tentativas ("Vi este / Parecido / Novo"), com atalhos de teclado `1/2/3` → **LDI, REC**.
 6. **Objeto-lugar** — os objetos-alvo reaparecem e o participante toca a célula onde estavam → **BND**.
@@ -175,7 +175,7 @@ Todos os parâmetros ficam no objeto `CONFIG`, no topo do `<script>` em `index.h
 | Chave | Padrão | Descrição |
 |---|---|---|
 | `cols`, `rows` | `4`, `6` | Dimensões da grade (nº de células = `cols × rows`) |
-| `encodeMs` | `2500` | Duração de exibição de cada objeto na codificação (ms) |
+| `encodeMs` | `3750` | Duração de exibição de cada objeto na codificação (ms) |
 | `isiMs` | `500` | Intervalo entre estímulos na codificação (ms) |
 | `nTargets` | `12` | Itens repetidos idênticos (viram alvos no teste e no objeto-lugar) |
 | `nLures` | `12` | Itens estudados reapresentados como isca semelhante |

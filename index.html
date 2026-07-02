@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#1c3836">
+<meta name="theme-color" content="#0e1310">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>DMOL — Discriminação Mnêmica de Objeto-em-Lugar</title>
 <style>
   :root{
-    --paper:#f6f4ee; --ink:#1b1c1e; --muted:#6c6e72; --line:#e3e0d7;
-    --accent:#2f6f6a; --accent-ink:#173f3b; --accent-soft:#e2efed;
-    --stage:#ffffff; --cell:#eeeae1; --cell-line:#ded9cd;
-    --danger:#9a3b2f; --ok:#2f6f6a;
-    --radius:14px; --maxw:560px;
+    /* tema escuro: aumenta o contraste das imagens (fundo branco) e reduz brilho na sala */
+    --paper:#0e1310; --ink:#eef2ef; --muted:#9aa39d; --line:#293430;
+    --accent:#43a89d; --accent-ink:#bfe6e1; --accent-soft:#172a27;
+    --stage:#151c19; --cell:#1a2320; --cell-line:#2c3833;
+    --danger:#e0776a; --ok:#43a89d;
+    --radius:14px; --maxw:820px;
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -23,11 +24,11 @@
     font-family:var(--font); background:var(--paper); color:var(--ink);
     line-height:1.5; -webkit-font-smoothing:antialiased;
     display:flex; justify-content:center;
-    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    padding:env(safe-area-inset-top) 8px env(safe-area-inset-bottom);
     overscroll-behavior:none; touch-action:manipulation;
   }
   #app{width:100%; max-width:var(--maxw); min-height:100dvh; display:flex; flex-direction:column}
-  .screen{flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:20px; padding:20px 4px; text-align:center; animation:fade .25s ease}
+  .screen{flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:16px; padding:14px 2px; text-align:center; animation:fade .25s ease}
   @keyframes fade{from{opacity:0} to{opacity:1}}
   @media (prefers-reduced-motion:reduce){.screen{animation:none} *{transition:none!important}}
   h1{font-size:26px; font-weight:600; letter-spacing:-.01em; margin:0}
@@ -62,21 +63,25 @@
     grid-template-columns:repeat(var(--cols),1fr);
     grid-template-rows:repeat(var(--rows),1fr);
     aspect-ratio:var(--cols) / var(--rows);
-    width:min(100%, calc(60dvh * var(--cols) / var(--rows)));
+    /* preenche o máximo da tela: limitada pela largura OU pela altura disponível
+       (reservando espaço p/ prompt + botões). Vale em celular, tablet e desktop. */
+    width:min(100%, calc((100dvh - 170px) * var(--cols) / var(--rows)));
     height:auto;
     padding:8px; border-radius:16px; border:1px solid var(--line);
   }
+  /* na fase objeto-lugar a grade divide a tela com o objeto de referência (min(46vw,22vh)) acima */
+  .scene.compact{ width:min(100%, calc((78dvh - 110px) * var(--cols) / var(--rows))); }
   .cell{background:var(--cell); border-radius:10px; border:1px solid var(--cell-line); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden}
   .cell.clickable{cursor:pointer; transition:background .12s, border-color .12s}
   .cell.clickable:active{background:var(--accent-soft); border-color:var(--accent)}
   .cell.picked{background:var(--accent-soft); border-color:var(--accent)}
   .cell canvas{width:88%; height:88%; max-width:100%; max-height:100%; display:block}
   /* single-object stage */
-  .obj-stage{width:min(64vw,240px); height:min(64vw,240px); background:var(--stage); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:center}
+  .obj-stage{width:min(92vw,60vh); height:min(92vw,60vh); background:var(--stage); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:center}
   .obj-stage canvas{width:82%; height:82%; max-width:100%; max-height:100%; display:block}
   /* imagens reais (banco MST): mesmo esquema responsivo do canvas */
-  .cell img{width:88%; height:88%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none; pointer-events:none}
-  .obj-stage img{width:82%; height:82%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none}
+  .cell img{width:94%; height:94%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none; pointer-events:none}
+  .obj-stage img{width:92%; height:92%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none}
   /* distractor numbers */
   .num-row{display:flex; gap:18px; width:100%; max-width:420px}
   .num{flex:1; font-size:44px; font-weight:600; font-variant-numeric:tabular-nums; padding:28px 0; border:1px solid var(--line); border-radius:18px; background:var(--stage); cursor:pointer}
@@ -109,7 +114,7 @@
    ============================================================ */
 const CONFIG = {
   cols: 4, rows: 6,          // grade 4x6 = 24 células (uma por objeto codificado)
-  encodeMs: 2500, isiMs: 500,
+  encodeMs: 3750, isiMs: 500,   // +50% no tempo de apresentação do objeto
   nTargets: 12,              // itens repetidos idênticos (viram alvos no teste e no objeto-lugar)
   nLures: 12,                // itens estudados reapresentados como isca semelhante
   nFoils: 12,                // objetos novos
@@ -429,7 +434,10 @@ function screenInstructions(){
   const s=scr(); tag('Instruções');
   s.append(el('h2','','Como funciona'));
   const ol=el('ol','steps');
-  ['Você verá vários objetos, um por vez, cada um numa posição da grade. Diga se cada objeto parece mais arredondado ou mais pontudo.',
+  const step1 = STIM.mode==='image'
+    ? 'Você verá vários objetos, um por vez, cada um numa posição da grade. Diga se você encontraria cada objeto mais dentro ou fora de casa.'
+    : 'Você verá vários objetos, um por vez, cada um numa posição da grade. Diga se cada objeto parece mais arredondado ou mais pontudo.';
+  [step1,
    'Depois, uma tarefa rápida de números.',
    'Em seguida, mostraremos objetos e você dirá se é um que já viu, um parecido, ou um novo.',
    'Por fim, alguns objetos voltam e você toca onde eles estavam.'
@@ -599,8 +607,8 @@ async function phasePlace(){
 function placeTrial(tr){
   return new Promise(resolve=>{
     const s=scr(); tag('Onde estava?');
-    const top=el('div','obj-stage'); top.style.width='min(38vw,150px)'; top.style.height='min(38vw,150px)';
-    top.append(renderStim(tr.stim, 150)); s.append(top);
+    const top=el('div','obj-stage'); top.style.width='min(46vw,22vh)'; top.style.height='min(46vw,22vh)';
+    top.append(renderStim(tr.stim, 220)); s.append(top);
     s.append(el('p','lead','Toque onde este objeto estava'));
     let onset=now(), done=false;
     const {scene}=buildScene(true,(cellId,cellEl)=>{
@@ -613,6 +621,7 @@ function placeTrial(tr){
            cell_correct:correct, grid_distance:+cellDist(cellId,tr.trueCell).toFixed(3), rt:+rt.toFixed(1)});
       setTimeout(resolve, 220);
     });
+    scene.classList.add('compact');
     s.append(scene);
     onset=now();
   });
