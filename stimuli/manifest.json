@@ -1,0 +1,776 @@
+{
+ "version": 1,
+ "source": "Mnemonic Similarity Task (MST), Stark lab — Set 1 (resized 400x400). celstark/MSTonline.",
+ "note": "bin = lure-bin de similaridade (5=quase idêntico/difícil ... 1=bem diferente/fácil), derivado empiricamente das normas do MST contínuo.",
+ "n_pairs": 128,
+ "pairs": [
+  {
+   "id": "002",
+   "a": "objects/002a.jpg",
+   "b": "objects/002b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "004",
+   "a": "objects/004a.jpg",
+   "b": "objects/004b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "006",
+   "a": "objects/006a.jpg",
+   "b": "objects/006b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "008",
+   "a": "objects/008a.jpg",
+   "b": "objects/008b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "009",
+   "a": "objects/009a.jpg",
+   "b": "objects/009b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "010",
+   "a": "objects/010a.jpg",
+   "b": "objects/010b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "012",
+   "a": "objects/012a.jpg",
+   "b": "objects/012b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "013",
+   "a": "objects/013a.jpg",
+   "b": "objects/013b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "015",
+   "a": "objects/015a.jpg",
+   "b": "objects/015b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "016",
+   "a": "objects/016a.jpg",
+   "b": "objects/016b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "017",
+   "a": "objects/017a.jpg",
+   "b": "objects/017b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "018",
+   "a": "objects/018a.jpg",
+   "b": "objects/018b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "020",
+   "a": "objects/020a.jpg",
+   "b": "objects/020b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "022",
+   "a": "objects/022a.jpg",
+   "b": "objects/022b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "023",
+   "a": "objects/023a.jpg",
+   "b": "objects/023b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "025",
+   "a": "objects/025a.jpg",
+   "b": "objects/025b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "026",
+   "a": "objects/026a.jpg",
+   "b": "objects/026b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "027",
+   "a": "objects/027a.jpg",
+   "b": "objects/027b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "028",
+   "a": "objects/028a.jpg",
+   "b": "objects/028b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "030",
+   "a": "objects/030a.jpg",
+   "b": "objects/030b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "031",
+   "a": "objects/031a.jpg",
+   "b": "objects/031b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "032",
+   "a": "objects/032a.jpg",
+   "b": "objects/032b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "033",
+   "a": "objects/033a.jpg",
+   "b": "objects/033b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "034",
+   "a": "objects/034a.jpg",
+   "b": "objects/034b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "036",
+   "a": "objects/036a.jpg",
+   "b": "objects/036b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "037",
+   "a": "objects/037a.jpg",
+   "b": "objects/037b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "038",
+   "a": "objects/038a.jpg",
+   "b": "objects/038b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "039",
+   "a": "objects/039a.jpg",
+   "b": "objects/039b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "040",
+   "a": "objects/040a.jpg",
+   "b": "objects/040b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "043",
+   "a": "objects/043a.jpg",
+   "b": "objects/043b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "044",
+   "a": "objects/044a.jpg",
+   "b": "objects/044b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "045",
+   "a": "objects/045a.jpg",
+   "b": "objects/045b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "046",
+   "a": "objects/046a.jpg",
+   "b": "objects/046b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "047",
+   "a": "objects/047a.jpg",
+   "b": "objects/047b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "048",
+   "a": "objects/048a.jpg",
+   "b": "objects/048b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "049",
+   "a": "objects/049a.jpg",
+   "b": "objects/049b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "050",
+   "a": "objects/050a.jpg",
+   "b": "objects/050b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "052",
+   "a": "objects/052a.jpg",
+   "b": "objects/052b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "054",
+   "a": "objects/054a.jpg",
+   "b": "objects/054b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "055",
+   "a": "objects/055a.jpg",
+   "b": "objects/055b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "059",
+   "a": "objects/059a.jpg",
+   "b": "objects/059b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "061",
+   "a": "objects/061a.jpg",
+   "b": "objects/061b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "062",
+   "a": "objects/062a.jpg",
+   "b": "objects/062b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "066",
+   "a": "objects/066a.jpg",
+   "b": "objects/066b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "068",
+   "a": "objects/068a.jpg",
+   "b": "objects/068b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "070",
+   "a": "objects/070a.jpg",
+   "b": "objects/070b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "071",
+   "a": "objects/071a.jpg",
+   "b": "objects/071b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "073",
+   "a": "objects/073a.jpg",
+   "b": "objects/073b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "074",
+   "a": "objects/074a.jpg",
+   "b": "objects/074b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "075",
+   "a": "objects/075a.jpg",
+   "b": "objects/075b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "076",
+   "a": "objects/076a.jpg",
+   "b": "objects/076b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "078",
+   "a": "objects/078a.jpg",
+   "b": "objects/078b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "079",
+   "a": "objects/079a.jpg",
+   "b": "objects/079b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "080",
+   "a": "objects/080a.jpg",
+   "b": "objects/080b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "081",
+   "a": "objects/081a.jpg",
+   "b": "objects/081b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "082",
+   "a": "objects/082a.jpg",
+   "b": "objects/082b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "083",
+   "a": "objects/083a.jpg",
+   "b": "objects/083b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "084",
+   "a": "objects/084a.jpg",
+   "b": "objects/084b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "085",
+   "a": "objects/085a.jpg",
+   "b": "objects/085b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "090",
+   "a": "objects/090a.jpg",
+   "b": "objects/090b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "092",
+   "a": "objects/092a.jpg",
+   "b": "objects/092b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "094",
+   "a": "objects/094a.jpg",
+   "b": "objects/094b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "095",
+   "a": "objects/095a.jpg",
+   "b": "objects/095b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "096",
+   "a": "objects/096a.jpg",
+   "b": "objects/096b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "097",
+   "a": "objects/097a.jpg",
+   "b": "objects/097b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "098",
+   "a": "objects/098a.jpg",
+   "b": "objects/098b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "099",
+   "a": "objects/099a.jpg",
+   "b": "objects/099b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "100",
+   "a": "objects/100a.jpg",
+   "b": "objects/100b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "101",
+   "a": "objects/101a.jpg",
+   "b": "objects/101b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "103",
+   "a": "objects/103a.jpg",
+   "b": "objects/103b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "104",
+   "a": "objects/104a.jpg",
+   "b": "objects/104b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "106",
+   "a": "objects/106a.jpg",
+   "b": "objects/106b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "110",
+   "a": "objects/110a.jpg",
+   "b": "objects/110b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "111",
+   "a": "objects/111a.jpg",
+   "b": "objects/111b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "112",
+   "a": "objects/112a.jpg",
+   "b": "objects/112b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "113",
+   "a": "objects/113a.jpg",
+   "b": "objects/113b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "114",
+   "a": "objects/114a.jpg",
+   "b": "objects/114b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "115",
+   "a": "objects/115a.jpg",
+   "b": "objects/115b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "116",
+   "a": "objects/116a.jpg",
+   "b": "objects/116b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "117",
+   "a": "objects/117a.jpg",
+   "b": "objects/117b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "119",
+   "a": "objects/119a.jpg",
+   "b": "objects/119b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "120",
+   "a": "objects/120a.jpg",
+   "b": "objects/120b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "123",
+   "a": "objects/123a.jpg",
+   "b": "objects/123b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "124",
+   "a": "objects/124a.jpg",
+   "b": "objects/124b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "125",
+   "a": "objects/125a.jpg",
+   "b": "objects/125b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "127",
+   "a": "objects/127a.jpg",
+   "b": "objects/127b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "128",
+   "a": "objects/128a.jpg",
+   "b": "objects/128b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "130",
+   "a": "objects/130a.jpg",
+   "b": "objects/130b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "131",
+   "a": "objects/131a.jpg",
+   "b": "objects/131b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "132",
+   "a": "objects/132a.jpg",
+   "b": "objects/132b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "134",
+   "a": "objects/134a.jpg",
+   "b": "objects/134b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "136",
+   "a": "objects/136a.jpg",
+   "b": "objects/136b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "137",
+   "a": "objects/137a.jpg",
+   "b": "objects/137b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "138",
+   "a": "objects/138a.jpg",
+   "b": "objects/138b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "140",
+   "a": "objects/140a.jpg",
+   "b": "objects/140b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "143",
+   "a": "objects/143a.jpg",
+   "b": "objects/143b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "144",
+   "a": "objects/144a.jpg",
+   "b": "objects/144b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "145",
+   "a": "objects/145a.jpg",
+   "b": "objects/145b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "146",
+   "a": "objects/146a.jpg",
+   "b": "objects/146b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "147",
+   "a": "objects/147a.jpg",
+   "b": "objects/147b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "148",
+   "a": "objects/148a.jpg",
+   "b": "objects/148b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "149",
+   "a": "objects/149a.jpg",
+   "b": "objects/149b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "151",
+   "a": "objects/151a.jpg",
+   "b": "objects/151b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "154",
+   "a": "objects/154a.jpg",
+   "b": "objects/154b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "155",
+   "a": "objects/155a.jpg",
+   "b": "objects/155b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "156",
+   "a": "objects/156a.jpg",
+   "b": "objects/156b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "158",
+   "a": "objects/158a.jpg",
+   "b": "objects/158b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "160",
+   "a": "objects/160a.jpg",
+   "b": "objects/160b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "161",
+   "a": "objects/161a.jpg",
+   "b": "objects/161b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "162",
+   "a": "objects/162a.jpg",
+   "b": "objects/162b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "163",
+   "a": "objects/163a.jpg",
+   "b": "objects/163b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "164",
+   "a": "objects/164a.jpg",
+   "b": "objects/164b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "166",
+   "a": "objects/166a.jpg",
+   "b": "objects/166b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "167",
+   "a": "objects/167a.jpg",
+   "b": "objects/167b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "169",
+   "a": "objects/169a.jpg",
+   "b": "objects/169b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "170",
+   "a": "objects/170a.jpg",
+   "b": "objects/170b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "171",
+   "a": "objects/171a.jpg",
+   "b": "objects/171b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "174",
+   "a": "objects/174a.jpg",
+   "b": "objects/174b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "175",
+   "a": "objects/175a.jpg",
+   "b": "objects/175b.jpg",
+   "bin": 3
+  },
+  {
+   "id": "177",
+   "a": "objects/177a.jpg",
+   "b": "objects/177b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "178",
+   "a": "objects/178a.jpg",
+   "b": "objects/178b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "179",
+   "a": "objects/179a.jpg",
+   "b": "objects/179b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "182",
+   "a": "objects/182a.jpg",
+   "b": "objects/182b.jpg",
+   "bin": 1
+  },
+  {
+   "id": "183",
+   "a": "objects/183a.jpg",
+   "b": "objects/183b.jpg",
+   "bin": 2
+  },
+  {
+   "id": "185",
+   "a": "objects/185a.jpg",
+   "b": "objects/185b.jpg",
+   "bin": 4
+  },
+  {
+   "id": "189",
+   "a": "objects/189a.jpg",
+   "b": "objects/189b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "190",
+   "a": "objects/190a.jpg",
+   "b": "objects/190b.jpg",
+   "bin": 5
+  },
+  {
+   "id": "191",
+   "a": "objects/191a.jpg",
+   "b": "objects/191b.jpg",
+   "bin": 1
+  }
+ ]
+}

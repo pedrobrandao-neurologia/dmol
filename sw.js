@@ -1,16 +1,31 @@
 /* DMOL service worker — cache-first para uso offline */
-const CACHE = 'dmol-v1';
+const CACHE = 'dmol-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './stimuli/manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png'
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(ASSETS);
+    // precache os estímulos listados no manifest (imagens MST), para uso offline
+    try {
+      const r = await fetch('./stimuli/manifest.json', { cache: 'no-cache' });
+      if (r.ok) {
+        const m = await r.json();
+        const imgs = [];
+        (m.pairs || []).forEach((p) => { if (p.a) imgs.push('./stimuli/' + p.a); if (p.b) imgs.push('./stimuli/' + p.b); });
+        await Promise.allSettled(imgs.map((u) => c.add(u)));
+      }
+    } catch (e) { /* sem manifest → app roda com estímulos procedurais */ }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
@@ -27,6 +42,6 @@ self.addEventListener('fetch', (e) => {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => e.request.mode === 'navigate' ? caches.match('./index.html') : Response.error()))
   );
 });

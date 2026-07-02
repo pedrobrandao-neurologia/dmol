@@ -70,7 +70,7 @@ Duração ~7–10 minutos, sessão única. Uma máquina de estados controla as f
 
 1. **Tela inicial** — identificação do participante, forma (A/B/C) e bloco relacional opcional.
 2. **Instruções + prática** — 3 objetos, com feedback (única etapa com feedback).
-3. **Codificação incidental** — 24 objetos, um por vez, cada um numa célula da grade (2500 ms + ISI 500 ms). Julgamento de recobrimento ("arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
+3. **Codificação incidental** — 24 objetos, um por vez, cada um numa célula da grade (2500 ms + ISI 500 ms). Julgamento incidental ("Onde você encontraria este objeto? Dentro/fora de casa" — o clássico do MST; no fallback procedural vira "arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
 4. **Distrator** — comparação de magnitude numérica por ~45 s (esvazia a memória de trabalho).
 5. **Discriminação de item** — 36 tentativas ("Vi este / Parecido / Novo"), com atalhos de teclado `1/2/3` → **LDI, REC**.
 6. **Objeto-lugar** — os objetos-alvo reaparecem e o participante toca a célula onde estavam → **BND**.
@@ -79,9 +79,26 @@ Duração ~7–10 minutos, sessão única. Uma máquina de estados controla as f
 
 ---
 
-## Estímulos (geração procedural)
+## Estímulos
 
-O coração do LDI são **iscas com similaridade graduada**. Como um banco de imagens calibrado ainda não está acoplado, os estímulos são **gerados por computador**: cada objeto é um vetor de features (silhueta *blob* de 9 raios, matiz, saturação, luminosidade, textura, rotação). A isca é uma **perturbação de magnitude controlada** desse vetor, e a magnitude é definida pelo **bin de similaridade** (bin 5 = quase idêntico; bin 1 = bem diferente).
+O app usa, por padrão, um **banco de imagens fotográficas padronizadas** e recorre a **estímulos procedurais** apenas como *fallback* (quando o banco não pode ser lido — p.ex. abrindo o arquivo direto por `file://`).
+
+### Banco fotográfico (padrão): Mnemonic Similarity Task (MST)
+
+O coração do LDI são **iscas com similaridade graduada**. Elas vêm do conjunto **Set 1 do MST** (lab. Craig Stark, UC Irvine), em que cada objeto tem **dois exemplares perceptualmente semelhantes** (`NNNa.jpg` = estudo/alvo; `NNNb.jpg` = isca) e um **lure bin** empírico (1–5; bin 5 = quase idêntico/difícil, bin 1 = bem diferente). Estão inclusos os **128 pares com bin calibrado**, distribuídos pelos cinco níveis; as iscas de cada sessão são **sorteadas de forma estratificada** para cobrir os cinco bins. Ver [`stimuli/ATTRIBUTION.md`](stimuli/ATTRIBUTION.md) para fonte, licença e citação.
+
+O banco é declarado em `stimuli/manifest.json`:
+
+```json
+{ "version": 1, "n_pairs": 128,
+  "pairs": [ { "id": "002", "a": "objects/002a.jpg", "b": "objects/002b.jpg", "bin": 5 } ] }
+```
+
+Para trocar por outro banco (p.ex. imagens locais calibradas), basta repor as imagens em `stimuli/objects/` e reescrever o `manifest.json` — nenhum código precisa mudar.
+
+### Fallback procedural
+
+Sem o banco, os estímulos são **gerados por computador**: cada objeto é um vetor de features (silhueta *blob* de 9 raios, matiz, saturação, luminosidade, textura, rotação). A isca é uma **perturbação de magnitude controlada** desse vetor, definida pelo **bin de similaridade** ([`CONFIG.binAmount`](#configuração-config)).
 
 Vantagens desta abordagem para um protótipo:
 
@@ -93,7 +110,7 @@ Vantagens desta abordagem para um protótipo:
 
 - grade **4×6 = 24 células** (em vez de 5×3 = 15), para caber 24 objetos em posições únicas;
 - **12 alvos / 12 iscas / 12 novos** (em vez de 16/16/16), mantendo consistência entre nº codificado e nº testado;
-- tarefa de recobrimento perceptual ("arredondado/pontudo") no lugar do julgamento semântico "cabe numa caixa de sapato", já que os estímulos são abstratos.
+- julgamento incidental "dentro/fora de casa" (canônico do MST) com objetos reais; no fallback procedural, tarefa perceptual "arredondado/pontudo", já que os estímulos são abstratos.
 
 ---
 
@@ -103,8 +120,12 @@ Vantagens desta abordagem para um protótipo:
 .
 ├── index.html               # app completo (motor do paradigma, estímulos, timing, escoragem, export)
 ├── manifest.webmanifest     # metadados da PWA (nome, ícones, tema)
-├── sw.js                    # service worker (cache-first para uso offline)
+├── sw.js                    # service worker (cache-first para uso offline; precache dos estímulos)
 ├── .nojekyll                # desliga o processamento Jekyll no GitHub Pages
+├── stimuli/                 # banco fotográfico (MST) usado por padrão
+│   ├── manifest.json        # pares alvo–isca + lure bin (1–5) de cada par
+│   ├── ATTRIBUTION.md       # fonte, licença e citação dos estímulos
+│   └── objects/             # 001a.jpg / 001b.jpg … (128 pares, 400×400)
 └── icons/
     ├── icon-192.png
     ├── icon-512.png
@@ -118,7 +139,7 @@ Todo o código-fonte relevante está em **`index.html`**, organizado em blocos c
 ## Como executar localmente
 
 **Modo rápido (teste imediato):** abra o `index.html` direto no navegador. Todo o paradigma roda sem servidor.
-*Observação:* por `file://`, o service worker e a instalação como app não ativam — mas o teste roda normalmente.
+*Observação:* por `file://`, o service worker e a instalação como app não ativam **e o banco de imagens não carrega** (o navegador bloqueia o `fetch` de arquivos locais) — nesse caso o teste roda com os **estímulos procedurais** de fallback. Para usar as imagens reais, sirva por HTTP (abaixo).
 
 **Modo PWA (offline + instalável):** sirva a pasta por HTTP:
 
@@ -266,7 +287,7 @@ Para curvas de esquecimento ou modelos mistos, acrescente `lme4`; para psicometr
 - **Não é dispositivo médico** nem ferramenta diagnóstica; é um instrumento de pesquisa em desenvolvimento.
 - **Sem normatização**: os escores são **brutos**, sem correção por idade, escolaridade, sexo ou dispositivo.
 - **Estímulos paramétricos**: úteis para prototipagem, mas **os bins de similaridade precisam de calibração empírica local** para o limiar de separação ter significado; os cortes/AUCs precisam ser derivados na população-alvo.
-- **Formas A/B/C** atualmente variam apenas a semente de geração, não conjuntos calibrados independentes.
+- **Formas A/B/C** usam **partições fixas e disjuntas** do banco de imagens (balanceadas por bin), servindo como formas paralelas sem sobreposição de itens para reteste/validação; dentro de cada forma, a ordem e os papéis ainda variam pela semente. *(No fallback procedural, A/B/C variam apenas a semente.)*
 - **Privacidade**: os dados existem apenas na memória do navegador até a exportação. Não colete dados identificáveis sem consentimento e aprovação ética.
 
 ---
@@ -274,7 +295,7 @@ Para curvas de esquecimento ou modelos mistos, acrescente `lme4`; para psicometr
 ## Roadmap
 
 - [ ] Modo de **calibração** dos bins de similaridade a partir de respostas-piloto
-- [ ] **Carregador de imagens reais** (pares por bin) substituindo os estímulos procedurais
+- [x] **Carregador de imagens reais** (pares por bin) — banco MST acoplado; procedural vira *fallback*
 - [ ] **Persistência local** (IndexedDB) e sincronização opcional com backend
 - [ ] **Normatização** por idade/escolaridade e cálculo de escores-z
 - [ ] Conjuntos **A/B/C calibrados** e equivalentes para reteste
