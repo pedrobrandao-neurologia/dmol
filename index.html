@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1c3836">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>DMOL — Discriminação Mnêmica de Objeto-em-Lugar</title>
 <style>
@@ -73,6 +74,9 @@
   /* single-object stage */
   .obj-stage{width:min(64vw,240px); height:min(64vw,240px); background:var(--stage); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:center}
   .obj-stage canvas{width:82%; height:82%; max-width:100%; max-height:100%; display:block}
+  /* imagens reais (banco MST): mesmo esquema responsivo do canvas */
+  .cell img{width:88%; height:88%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none; pointer-events:none}
+  .obj-stage img{width:82%; height:82%; max-width:100%; max-height:100%; object-fit:contain; display:block; -webkit-user-drag:none; user-select:none}
   /* distractor numbers */
   .num-row{display:flex; gap:18px; width:100%; max-width:420px}
   .num{flex:1; font-size:44px; font-weight:600; font-variant-numeric:tabular-nums; padding:28px 0; border:1px solid var(--line); border-radius:18px; background:var(--stage); cursor:pointer}
@@ -212,45 +216,121 @@ function renderShape(shape, sizeCss){
   return c;
 }
 
+/* ============ estímulos por imagem (banco MST) + fallback procedural ============ */
+// STIM.mode: 'image' quando o manifest carrega; 'procedural' como fallback (file:// ou manifest ausente).
+let STIM = { mode:'procedural', pairs:null };
+const STIM_BASE = 'stimuli/';
+async function loadManifest(){
+  try{
+    const r = await fetch(STIM_BASE+'manifest.json', {cache:'no-cache'});
+    if(!r.ok) return;
+    const m = await r.json();
+    const need = N_ENCODE + CONFIG.nFoils + CONFIG.practiceN;
+    if(m && Array.isArray(m.pairs) && m.pairs.length >= need){
+      // resolve caminhos relativos ao index.html e valida bins
+      const pairs = m.pairs
+        .filter(p => p && p.a && p.b && p.bin>=1 && p.bin<=5)
+        .map(p => ({ id:p.id, a:STIM_BASE+p.a, b:STIM_BASE+p.b, bin:p.bin }));
+      if(pairs.length >= need){ STIM = { mode:'image', pairs }; }
+    }
+  }catch(e){ /* file:// ou offline sem cache → mantém procedural */ }
+}
+// spec de estímulo do objeto "oi" na versão de estudo/alvo (imagem a, ou shape procedural)
+function objStim(oi){ const o = S.pool[oi]; return STIM.mode==='image' ? {img:o.a} : {shape:o}; }
+// renderiza um spec ({img} ou {shape}) num nó DOM; o tamanho é controlado pelo CSS do contêiner
+function renderStim(stim, sizeCss){
+  if(stim && stim.img){
+    const im = new Image();
+    im.decoding = 'async'; im.alt = ''; im.draggable = false; im.src = stim.img;
+    return im;
+  }
+  return renderShape(stim.shape, sizeCss);
+}
+// pré-carrega uma lista de URLs mostrando progresso (só no modo imagem)
+function screenLoading(urls){
+  return new Promise(resolve=>{
+    const s = scr(); tag('Preparando'); setProg(0,1);
+    s.append(el('h2','','Preparando o teste'));
+    const p = el('p','','Carregando imagens… 0%'); s.append(p);
+    const total = urls.length || 1; let done = 0;
+    if(!urls.length){ resolve(); return; }
+    urls.forEach(u=>{
+      const im = new Image();
+      im.onload = im.onerror = ()=>{
+        done++; p.textContent = 'Carregando imagens… '+Math.round(100*done/total)+'%';
+        setProg(done,total);
+        if(done>=total) resolve();
+      };
+      im.src = u;
+    });
+  });
+}
+
 /* ======================== estado da sessão ======================== */
 let S = null;
 function buildSession(pid, form, enableRel){
   const seed = (Date.now() ^ Math.floor(Math.random()*1e9)) >>> 0;
   const rnd = mulberry32(seed);
-  const pool = Array.from({length:CONFIG.poolSize}, ()=> makeShape(rnd));
-  const idx = shuffle(pool.map((_,i)=>i), rnd);
 
-  const studied = idx.slice(0, N_ENCODE);                     // 24
-  const cells   = shuffle(Array.from({length:N_CELLS},(_,i)=>i), rnd).slice(0, N_ENCODE);
-  const targetItems = studied.slice(0, CONFIG.nTargets);      // repetidos idênticos
-  const lureItems   = studied.slice(CONFIG.nTargets, N_ENCODE);
-  const foilIdx     = idx.slice(N_ENCODE, N_ENCODE + CONFIG.nFoils);
+  let pool, targetItems, lureItems, foilIdx, studied, practice;
+  const lureBinOf = {};   // objIndex -> bin (para o modo imagem)
 
-  // cell por item estudado
+  if(STIM.mode === 'image'){
+    // ---- modo imagem: pool = pares MST (cada par tem bin empírico) ----
+    pool = STIM.pairs;
+    // iscas estratificadas por bin, para cobrir os 5 níveis de similaridade
+    const byBin = {1:[],2:[],3:[],4:[],5:[]};
+    pool.forEach((p,i)=>{ if(byBin[p.bin]) byBin[p.bin].push(i); });
+    for(const b in byBin) byBin[b] = shuffle(byBin[b], rnd);
+    const lure = []; const binOrder = shuffle([1,2,3,4,5], rnd); let bi = 0;
+    while(lure.length < CONFIG.nLures && bi < 10000){
+      const b = binOrder[bi % 5]; bi++;
+      if(byBin[b] && byBin[b].length){ const oi = byBin[b].pop(); lure.push(oi); lureBinOf[oi] = b; }
+    }
+    const used = new Set(lure);
+    const rest = shuffle(pool.map((_,i)=>i).filter(i=>!used.has(i)), rnd);
+    targetItems = rest.slice(0, CONFIG.nTargets);
+    foilIdx     = rest.slice(CONFIG.nTargets, CONFIG.nTargets + CONFIG.nFoils);
+    const practiceIdx = rest.slice(CONFIG.nTargets + CONFIG.nFoils, CONFIG.nTargets + CONFIG.nFoils + CONFIG.practiceN);
+    lureItems = lure;
+    studied   = targetItems.concat(lureItems);
+    practice  = practiceIdx.map(i=>({ img: pool[i].a }));
+  } else {
+    // ---- fallback procedural: shapes gerados + iscas por perturbação ----
+    pool = Array.from({length:CONFIG.poolSize}, ()=> makeShape(rnd));
+    const idx = shuffle(pool.map((_,i)=>i), rnd);
+    studied = idx.slice(0, N_ENCODE);
+    targetItems = studied.slice(0, CONFIG.nTargets);
+    lureItems   = studied.slice(CONFIG.nTargets, N_ENCODE);
+    foilIdx     = idx.slice(N_ENCODE, N_ENCODE + CONFIG.nFoils);
+    const binPool = []; const bins=[5,4,3,2,1];
+    for(let i=0;i<CONFIG.nLures;i++) binPool.push(bins[i%bins.length]);
+    const lureBins = shuffle(binPool, rnd);
+    lureItems.forEach((oi,i)=> lureBinOf[oi] = lureBins[i]);
+    practice = Array.from({length:CONFIG.practiceN}, ()=> ({ shape: makeShape(rnd) }));
+  }
+
+  // célula por item estudado
+  const cells  = shuffle(Array.from({length:N_CELLS},(_,i)=>i), rnd).slice(0, studied.length);
   const cellOf = {};
   studied.forEach((oi,k)=> cellOf[oi] = cells[k]);
-
-  // ordem de codificação (aleatória)
   const encodeOrder = shuffle(studied, rnd);
 
-  // bins das iscas (distribuídos)
-  const binPool = [];
-  const bins=[5,4,3,2,1];
-  for(let i=0;i<CONFIG.nLures;i++) binPool.push(bins[i%bins.length]);
-  const lureBins = shuffle(binPool, rnd);
+  // spec de estímulo (versão estudo/alvo) e da isca
+  const encStim  = oi => STIM.mode==='image' ? {img:pool[oi].a} : {shape:pool[oi]};
+  const lureStim = oi => STIM.mode==='image'
+      ? {img:pool[oi].b}
+      : {shape:perturb(pool[oi], CONFIG.binAmount[lureBinOf[oi]], rnd)};
 
   // trials do teste de item
   const itemTrials = [];
-  targetItems.forEach(oi => itemTrials.push({role:'target', objIndex:oi, shape:pool[oi], sim_bin:null}));
-  lureItems.forEach((oi,i) => {
-    const bin = lureBins[i];
-    itemTrials.push({role:'lure', objIndex:oi, shape:perturb(pool[oi], CONFIG.binAmount[bin], rnd), sim_bin:bin});
-  });
-  foilIdx.forEach(oi => itemTrials.push({role:'foil', objIndex:oi, shape:pool[oi], sim_bin:null}));
+  targetItems.forEach(oi => itemTrials.push({role:'target', objIndex:oi, stim:encStim(oi),  sim_bin:null}));
+  lureItems.forEach(oi   => itemTrials.push({role:'lure',   objIndex:oi, stim:lureStim(oi), sim_bin:lureBinOf[oi]}));
+  foilIdx.forEach(oi     => itemTrials.push({role:'foil',   objIndex:oi, stim:encStim(oi),  sim_bin:null}));
   const itemOrder = shuffle(itemTrials, rnd);
 
   // teste objeto-lugar: itens-alvo (idênticos), local conhecido
-  const placeOrder = shuffle(targetItems.map(oi=>({objIndex:oi, shape:pool[oi], trueCell:cellOf[oi]})), rnd);
+  const placeOrder = shuffle(targetItems.map(oi=>({objIndex:oi, stim:encStim(oi), trueCell:cellOf[oi]})), rnd);
 
   // relational (opcional): pares de itens-alvo
   let relTrials = [];
@@ -263,14 +343,23 @@ function buildSession(pid, form, enableRel){
     relTrials = shuffle(relTrials, rnd);
   }
 
-  // prática (objetos fora do pool testado)
-  const practice = Array.from({length:CONFIG.practiceN}, ()=> makeShape(rnd));
+  // URLs a pré-carregar (só no modo imagem)
+  let preloadUrls = [];
+  if(STIM.mode === 'image'){
+    const set = new Set();
+    practice.forEach(s=> s.img && set.add(s.img));
+    encodeOrder.forEach(oi=> set.add(pool[oi].a));
+    itemOrder.forEach(t=> t.stim.img && set.add(t.stim.img));
+    placeOrder.forEach(t=> t.stim.img && set.add(t.stim.img));
+    preloadUrls = [...set];
+  }
 
   return {
     meta:{ participant_id:pid||('anon-'+uuid().slice(0,8)), session_id:uuid(), form, seed,
-           started:new Date().toISOString(), device:deviceInfo(), config:CONFIG, enableRelational:enableRel },
+           started:new Date().toISOString(), device:deviceInfo(), config:CONFIG,
+           enableRelational:enableRel, stimulus_mode:STIM.mode },
     pool, cellOf,
-    encodeOrder, itemOrder, placeOrder, relTrials, practice,
+    encodeOrder, itemOrder, placeOrder, relTrials, practice, preloadUrls,
     targetItems, lureItems, foilIdx,
     trials: []   // log bruto por tentativa
   };
@@ -297,7 +386,8 @@ function screenIntro(){
   s.append(el('span','badge','protótipo de pesquisa'));
   const h=el('h1','','DMOL'); s.append(h);
   s.append(el('p','lead','Discriminação Mnêmica de Objeto-em-Lugar'));
-  s.append(el('p','','Teste breve de memória hipocampo-dependente. Estímulos gerados por computador; ~7–10 minutos.'));
+  const srcTxt = STIM.mode==='image' ? 'Objetos fotográficos padronizados (banco MST)' : 'Estímulos gerados por computador';
+  s.append(el('p','','Teste breve de memória hipocampo-dependente. '+srcTxt+'; ~7–10 minutos.'));
 
   const f=el('div','fields');
   const l1=el('label','field','Identificação do participante');
@@ -309,7 +399,12 @@ function screenIntro(){
   f.append(l1,l2,l3); s.append(f);
 
   const b=el('button','btn primary','Começar'); b.style.marginTop='6px';
-  b.onclick=()=>{ enterFullscreenSoft(); S=buildSession(pid.value.trim(), sel.value, chk.checked); screenInstructions(); };
+  b.onclick=async ()=>{
+    enterFullscreenSoft();
+    S=buildSession(pid.value.trim(), sel.value, chk.checked);
+    if(S.preloadUrls && S.preloadUrls.length){ await screenLoading(S.preloadUrls); }
+    screenInstructions();
+  };
   s.append(b);
   s.append(el('p','note','Ao continuar, os dados ficam apenas neste dispositivo até você exportá-los. Não colete dados identificáveis sem consentimento/aprovação ética.'));
 }
@@ -335,7 +430,7 @@ async function runPractice(){
   tag('Prática');
   for(let i=0;i<S.practice.length;i++){
     setProg(i, S.practice.length);
-    await encodeTrial({shape:S.practice[i], cell: (i*7+3)%N_CELLS, practice:true});
+    await encodeTrial({stim:S.practice[i], cell: (i*7+3)%N_CELLS, practice:true});
   }
   // um mini teste de item + escolha
   const s=scr();
@@ -362,37 +457,40 @@ function buildScene(clickable, onPick){
   }
   return {scene, cells};
 }
-function encodeTrial({shape, cell, practice}){
+function encodeTrial({stim, cell, practice, objIndex}){
   return new Promise(async resolve=>{
     const s=scr(); tag(practice?'Prática':'Memorize');
     const {scene,cells}=buildScene(false);
     s.append(scene);
-    const prompt=el('p','lead','Arredondado ou pontudo?');
+    const img = STIM.mode==='image';
+    // julgamento incidental: dentro/fora (canônico do MST) para objetos reais;
+    // arredondado/pontudo para os estímulos procedurais abstratos.
+    const prompt=el('p','lead', img ? 'Onde você encontraria este objeto?' : 'Arredondado ou pontudo?');
     const row=el('div','btn-row choice-row'); row.style.maxWidth='360px';
-    const bR=el('button','btn','Arredondado'), bP=el('button','btn','Pontudo');
-    row.append(bR,bP); s.append(prompt,row);
+    const b1=el('button','btn', img?'Dentro de casa':'Arredondado');
+    const b2=el('button','btn', img?'Fora de casa':'Pontudo');
+    row.append(b1,b2); s.append(prompt,row);
 
-    // desenha objeto na célula
-    const cv=renderShape(shape, 200);
-    cells[cell].append(cv);
+    // desenha/mostra o objeto na célula
+    const node=renderStim(stim, 200);
+    cells[cell].append(node);
     const onset=now(); let answered=false, resp=null, rt=null;
+    const v1 = img?'indoor':'round', v2 = img?'outdoor':'pointy';
     const pick=(v)=>{ if(answered)return; answered=true; resp=v; rt=now()-onset;
-      bR.disabled=bP.disabled=true; (v==='round'?bR:bP).classList.add('primary'); };
-    bR.onclick=()=>pick('round'); bP.onclick=()=>pick('pointy');
+      b1.disabled=b2.disabled=true; (v===v1?b1:b2).classList.add('primary'); };
+    b1.onclick=()=>pick(v1); b2.onclick=()=>pick(v2);
 
     await wait(CONFIG.encodeMs);
     if(!practice){
-      log({phase:'encoding', objIndex: shapeIndexHint(shape), cell,
-           roundness:+roundnessOf(shape).toFixed(4), response:resp, rt: rt!=null?+rt.toFixed(1):null, onset:+onset.toFixed(1)});
+      const rec={phase:'encoding', objIndex, cell, response:resp,
+                 rt: rt!=null?+rt.toFixed(1):null, onset:+onset.toFixed(1)};
+      if(!img) rec.roundness = +roundnessOf(stim.shape).toFixed(4);
+      log(rec);
     }
-    cv.remove();
+    node.remove();
     await wait(CONFIG.isiMs);
     resolve();
   });
-}
-// objIndex só é conhecido para objetos do pool; prática usa shapes soltas
-function shapeIndexHint(shape){
-  const k = S.pool.indexOf(shape); return k>=0?k:null;
 }
 
 async function phaseEncoding(){
@@ -401,7 +499,7 @@ async function phaseEncoding(){
   for(let i=0;i<order.length;i++){
     setProg(i, order.length);
     const oi=order[i];
-    await encodeTrial({shape:S.pool[oi], cell:S.cellOf[oi], practice:false});
+    await encodeTrial({stim:objStim(oi), cell:S.cellOf[oi], practice:false, objIndex:oi});
   }
   phaseDistractor();
 }
@@ -450,7 +548,7 @@ async function phaseItem(){
 function itemTrial(tr){
   return new Promise(resolve=>{
     const s=scr(); tag('Já viu?');
-    const stage=el('div','obj-stage'); stage.append(renderShape(tr.shape, 220)); s.append(stage);
+    const stage=el('div','obj-stage'); stage.append(renderStim(tr.stim, 220)); s.append(stage);
     s.append(el('p','','Este objeto é…'));
     const row=el('div','btn-row choice-row'); row.style.maxWidth='440px';
     const bOld=el('button','btn','Vi este'), bSim=el('button','btn','Parecido'), bNew=el('button','btn','Novo');
@@ -486,7 +584,7 @@ function placeTrial(tr){
   return new Promise(resolve=>{
     const s=scr(); tag('Onde estava?');
     const top=el('div','obj-stage'); top.style.width='min(38vw,150px)'; top.style.height='min(38vw,150px)';
-    top.append(renderShape(tr.shape, 150)); s.append(top);
+    top.append(renderStim(tr.stim, 150)); s.append(top);
     s.append(el('p','lead','Toque onde este objeto estava'));
     let onset=now(), done=false;
     const {scene}=buildScene(true,(cellId,cellEl)=>{
@@ -521,8 +619,8 @@ function relTrial(tr){
     const {scene,cells}=buildScene(false);
     const posA = tr.intact ? tr.cellA : tr.cellB;
     const posB = tr.intact ? tr.cellB : tr.cellA;
-    cells[posA].append(renderShape(S.pool[tr.a],200));
-    cells[posB].append(renderShape(S.pool[tr.b],200));
+    cells[posA].append(renderStim(objStim(tr.a),200));
+    cells[posB].append(renderStim(objStim(tr.b),200));
     s.append(scene);
     s.append(el('p','lead','As posições estão como antes?'));
     const row=el('div','btn-row choice-row'); row.style.maxWidth='360px';
@@ -665,8 +763,8 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 // evita perda acidental durante o teste
 window.addEventListener('beforeunload', e=>{ if(S && S.trials.length && !S.meta.finished){ e.preventDefault(); e.returnValue=''; }});
 
-/* start */
-screenIntro();
+/* start — tenta carregar o banco de imagens (MST); se falhar, usa estímulos procedurais */
+loadManifest().finally(screenIntro);
 </script>
 </body>
 </html>
