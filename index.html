@@ -69,10 +69,10 @@
   .cell.clickable{cursor:pointer; transition:background .12s, border-color .12s}
   .cell.clickable:active{background:var(--accent-soft); border-color:var(--accent)}
   .cell.picked{background:var(--accent-soft); border-color:var(--accent)}
-  .cell canvas{width:88%; height:88%}
+  .cell canvas{width:88%; height:88%; max-width:100%; max-height:100%; display:block}
   /* single-object stage */
   .obj-stage{width:min(64vw,240px); height:min(64vw,240px); background:var(--stage); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:center}
-  .obj-stage canvas{width:82%; height:82%}
+  .obj-stage canvas{width:82%; height:82%; max-width:100%; max-height:100%; display:block}
   /* distractor numbers */
   .num-row{display:flex; gap:18px; width:100%; max-width:420px}
   .num{flex:1; font-size:44px; font-weight:600; font-variant-numeric:tabular-nums; padding:28px 0; border:1px solid var(--line); border-radius:18px; background:var(--stage); cursor:pointer}
@@ -164,7 +164,9 @@ function renderShape(shape, sizeCss){
   const dpr = Math.min(window.devicePixelRatio||1, 3);
   const c = document.createElement('canvas');
   c.width = Math.round(sizeCss*dpr); c.height = Math.round(sizeCss*dpr);
-  c.style.width = sizeCss+'px'; c.style.height = sizeCss+'px';
+  // O tamanho exibido é controlado pelo CSS do contêiner (.cell / .obj-stage),
+  // para escalar de forma responsiva. sizeCss define apenas a resolução do
+  // backing store (nitidez) e o sistema de coordenadas do desenho.
   const ctx = c.getContext('2d'); ctx.scale(dpr,dpr);
   const cx=sizeCss/2, cy=sizeCss/2, R=sizeCss*0.42;
   const n=shape.radii.length;
