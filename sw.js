@@ -1,5 +1,5 @@
 /* DMOL service worker — cache-first para uso offline */
-const CACHE = 'dmol-v3';
+const CACHE = 'dmol-v4';
 const ASSETS = [
   './',
   './index.html',

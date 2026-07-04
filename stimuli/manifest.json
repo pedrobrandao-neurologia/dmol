@@ -1,7 +1,7 @@
 {
  "version": 1,
  "source": "Mnemonic Similarity Task (MST), Stark lab — Set 1 (resized 400x400). celstark/MSTonline.",
- "note": "bin = lure-bin de similaridade (5=quase idêntico/difícil ... 1=bem diferente/fácil), derivado empiricamente das normas do MST contínuo.",
+ "note": "bin = lure-bin de similaridade na convenção canônica de Stark: 1 = MAIS similar (quase idêntico/difícil) ... 5 = MENOS similar (bem diferente/fácil). Números copiados diretamente de 'Set1 bins.txt' (celstark/MST), derivados empiricamente das taxas de alarme-falso do MST.",
  "n_pairs": 128,
  "pairs": [
   {

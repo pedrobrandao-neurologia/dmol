@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1310">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
@@ -11,7 +11,7 @@
 <style>
   :root{
     /* tema escuro: aumenta o contraste das imagens (fundo branco) e reduz brilho na sala */
-    --paper:#0e1310; --ink:#eef2ef; --muted:#9aa39d; --line:#293430;
+    --paper:#0e1310; --ink:#eef2ef; --muted:#b7c0ba; --line:#293430;
     --accent:#43a89d; --accent-ink:#bfe6e1; --accent-soft:#172a27;
     --stage:#151c19; --cell:#1a2320; --cell-line:#2c3833;
     --danger:#e0776a; --ok:#43a89d;
@@ -22,7 +22,7 @@
   html,body{margin:0; padding:0; height:100%}
   body{
     font-family:var(--font); background:var(--paper); color:var(--ink);
-    line-height:1.5; -webkit-font-smoothing:antialiased;
+    font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased;
     display:flex; justify-content:center;
     padding:env(safe-area-inset-top) 8px env(safe-area-inset-bottom);
     overscroll-behavior:none; touch-action:manipulation;
@@ -34,7 +34,7 @@
   h1{font-size:26px; font-weight:600; letter-spacing:-.01em; margin:0}
   h2{font-size:20px; font-weight:600; margin:0}
   p{margin:0; color:var(--muted); max-width:42ch}
-  p.lead{color:var(--ink); font-size:17px}
+  p.lead{color:var(--ink); font-size:18px}
   .kbd{font-variant-numeric:tabular-nums}
   .badge{display:inline-block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-ink); background:var(--accent-soft); padding:4px 10px; border-radius:999px; font-weight:600}
   /* buttons */
@@ -95,7 +95,7 @@
   table.bins{width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums}
   table.bins th, table.bins td{padding:6px 8px; border-bottom:1px solid var(--line); text-align:center}
   table.bins th{color:var(--muted); font-weight:500}
-  .note{font-size:12.5px; color:var(--muted); max-width:44ch}
+  .note{font-size:13.5px; color:var(--muted); max-width:44ch}
   .hidden{display:none!important}
   ol.steps{text-align:left; color:var(--muted); max-width:40ch; margin:0; padding-left:20px}
   ol.steps li{margin:6px 0}
@@ -113,21 +113,27 @@
    CONFIG — ajuste aqui para casar com a especificação / piloto
    ============================================================ */
 const CONFIG = {
-  cols: 4, rows: 6,          // grade 4x6 = 24 células (uma por objeto codificado)
-  encodeMs: 3750, isiMs: 500,   // +50% no tempo de apresentação do objeto
-  nTargets: 12,              // itens repetidos idênticos (viram alvos no teste e no objeto-lugar)
-  nLures: 12,                // itens estudados reapresentados como isca semelhante
+  cols: 3, rows: 3,          // grade 3x3 = 9 células (LOCATO-style; reduz a carga da ligação objeto-lugar)
+  encodeMs: 3750, isiMs: 500,   // tempo de codificação generoso (mantido longo de propósito; encurtá-lo aumenta a dificuldade)
+  nTargets: 8,               // itens repetidos idênticos (alvos + itens do teste objeto-lugar); ≤ nº de células
+  nLures: 18,                // itens estudados reapresentados como isca semelhante (mantido acima do piso psicométrico do LDI)
   nFoils: 12,                // objetos novos
-  distractorMs: 45000,
+  distractorMs: 20000,       // retenção mais curta → menos esquecimento, menos efeito de piso, LDI mais alto
   practiceN: 3,
   poolSize: 60,
-  // similaridade: mapeia bin -> magnitude de perturbação (menor = mais parecido)
-  binAmount: { 5:0.08, 4:0.15, 3:0.24, 2:0.34, 1:0.46 },
+  // Similaridade da isca. CONVENÇÃO DE STARK (canônica): bin 1 = MAIS similar (mais difícil) …
+  // bin 5 = MENOS similar (mais fácil). binAmount mapeia bin -> magnitude de perturbação no
+  // fallback procedural (menor = mais parecido = mais difícil).
+  binAmount: { 1:0.08, 2:0.15, 3:0.24, 4:0.34, 5:0.46 },
+  // Bins amostrados para as iscas. Exclui o bin 1 (iscas quase idênticas, as mais difíceis e as
+  // mais contaminadas por percepção visual em idosos) para reduzir a dificuldade sem perder a
+  // curva graduada de separação (bins 2–5).
+  lureBins: [2,3,4,5],
   enableRelational: false,   // Fase 5 opcional (definido na tela inicial)
   relationalTrials: 6,
   interTrialMs: 350
 };
-const N_ENCODE = CONFIG.nTargets + CONFIG.nLures;      // = 24
+const N_ENCODE = CONFIG.nTargets + CONFIG.nLures;      // = 26
 const N_CELLS = CONFIG.cols * CONFIG.rows;
 
 /* ============================ utils ============================ */
@@ -289,7 +295,7 @@ function buildSession(pid, form, enableRel){
   const seed = (Date.now() ^ Math.floor(Math.random()*1e9)) >>> 0;
   const rnd = mulberry32(seed);
 
-  let pool, targetItems, lureItems, foilIdx, studied, practice;
+  let pool, targetItems, lureItems, foilIdx, studied, practice, practiceDemo;
   const lureBinOf = {};   // objIndex -> bin (para o modo imagem)
 
   if(STIM.mode === 'image'){
@@ -303,9 +309,12 @@ function buildSession(pid, form, enableRel){
     const byBin = {1:[],2:[],3:[],4:[],5:[]};
     pool.forEach((p,i)=>{ if(byBin[p.bin]) byBin[p.bin].push(i); });
     for(const b in byBin) byBin[b] = shuffle(byBin[b], rnd);
-    const lure = []; const binOrder = shuffle([1,2,3,4,5], rnd); let bi = 0;
+    // amostra estratificada apenas nos bins habilitados (CONFIG.lureBins), cobrindo os níveis
+    // de similaridade sem incluir o bin mais difícil
+    const binOrder = shuffle(CONFIG.lureBins.slice(), rnd);
+    const lure = []; let bi = 0;
     while(lure.length < CONFIG.nLures && bi < 10000){
-      const b = binOrder[bi % 5]; bi++;
+      const b = binOrder[bi % binOrder.length]; bi++;
       if(byBin[b] && byBin[b].length){ const oi = byBin[b].pop(); lure.push(oi); lureBinOf[oi] = b; }
     }
     const used = new Set(lure);
@@ -316,6 +325,8 @@ function buildSession(pid, form, enableRel){
     lureItems = lure;
     studied   = targetItems.concat(lureItems);
     practice  = practiceIdx.map(i=>({ img: pool[i].a }));
+    // demo guiado: o mesmo objeto da prática (idêntico = "Vi este") e a sua isca (=".b" = "Parecido")
+    practiceDemo = { old:{ img: pool[practiceIdx[0]].a }, similar:{ img: pool[practiceIdx[0]].b } };
   } else {
     // ---- fallback procedural: shapes gerados + iscas por perturbação ----
     pool = Array.from({length:CONFIG.poolSize}, ()=> makeShape(rnd));
@@ -324,17 +335,23 @@ function buildSession(pid, form, enableRel){
     targetItems = studied.slice(0, CONFIG.nTargets);
     lureItems   = studied.slice(CONFIG.nTargets, N_ENCODE);
     foilIdx     = idx.slice(N_ENCODE, N_ENCODE + CONFIG.nFoils);
-    const binPool = []; const bins=[5,4,3,2,1];
-    for(let i=0;i<CONFIG.nLures;i++) binPool.push(bins[i%bins.length]);
-    const lureBins = shuffle(binPool, rnd);
-    lureItems.forEach((oi,i)=> lureBinOf[oi] = lureBins[i]);
+    const binPool = []; const lb = CONFIG.lureBins;
+    for(let i=0;i<CONFIG.nLures;i++) binPool.push(lb[i%lb.length]);
+    const lureBinsAssigned = shuffle(binPool, rnd);
+    lureItems.forEach((oi,i)=> lureBinOf[oi] = lureBinsAssigned[i]);
     practice = Array.from({length:CONFIG.practiceN}, ()=> ({ shape: makeShape(rnd) }));
+    practiceDemo = { old: practice[0], similar:{ shape: perturb(practice[0].shape, CONFIG.binAmount[3], rnd) } };
   }
 
-  // célula por item estudado
-  const cells  = shuffle(Array.from({length:N_CELLS},(_,i)=>i), rnd).slice(0, studied.length);
+  // Células: cada ALVO (item testado no objeto-lugar) recebe uma célula ÚNICA; as ISCAS
+  // reutilizam células livremente (o local delas nunca é testado). Isso DESACOPLA o tamanho da
+  // grade do nº de itens codificados — permite grade pequena (9 células, chance 1/9 no lugar de
+  // 1/24) mantendo uma lista de estudo grande o bastante para um LDI confiável.
+  if(targetItems.length > N_CELLS) throw new Error('nTargets ('+targetItems.length+') > células ('+N_CELLS+')');
+  const cellPool = shuffle(Array.from({length:N_CELLS},(_,i)=>i), rnd);
   const cellOf = {};
-  studied.forEach((oi,k)=> cellOf[oi] = cells[k]);
+  targetItems.forEach((oi,k)=> cellOf[oi] = cellPool[k]);
+  lureItems.forEach(oi => cellOf[oi] = cellPool[Math.floor(rnd()*N_CELLS)]);
   const encodeOrder = shuffle(studied, rnd);
 
   // spec de estímulo (versão estudo/alvo) e da isca
@@ -369,6 +386,7 @@ function buildSession(pid, form, enableRel){
   if(STIM.mode === 'image'){
     const set = new Set();
     practice.forEach(s=> s.img && set.add(s.img));
+    if(practiceDemo){ [practiceDemo.old, practiceDemo.similar].forEach(s=> s && s.img && set.add(s.img)); }
     encodeOrder.forEach(oi=> set.add(pool[oi].a));
     itemOrder.forEach(t=> t.stim.img && set.add(t.stim.img));
     placeOrder.forEach(t=> t.stim.img && set.add(t.stim.img));
@@ -380,7 +398,7 @@ function buildSession(pid, form, enableRel){
            started:new Date().toISOString(), device:deviceInfo(), config:CONFIG,
            enableRelational:enableRel, stimulus_mode:STIM.mode, form_pool_n:pool.length },
     pool, cellOf,
-    encodeOrder, itemOrder, placeOrder, relTrials, practice, preloadUrls,
+    encodeOrder, itemOrder, placeOrder, relTrials, practice, practiceDemo, preloadUrls,
     targetItems, lureItems, foilIdx,
     trials: []   // log bruto por tentativa
   };
@@ -438,28 +456,61 @@ function screenInstructions(){
     ? 'Você verá vários objetos, um por vez, cada um numa posição da grade. Diga se você encontraria cada objeto mais dentro ou fora de casa.'
     : 'Você verá vários objetos, um por vez, cada um numa posição da grade. Diga se cada objeto parece mais arredondado ou mais pontudo.';
   [step1,
-   'Depois, uma tarefa rápida de números.',
-   'Em seguida, mostraremos objetos e você dirá se é um que já viu, um parecido, ou um novo.',
-   'Por fim, alguns objetos voltam e você toca onde eles estavam.'
+   'Depois, uma tarefa rápida com números, só para dar uma pausa.',
+   'Em seguida, mostraremos objetos, um por vez. Para cada um, toque em: “Vi este” se for exatamente igual a um que apareceu antes; “Parecido” se lembra um que apareceu, mas com alguma diferença; “Novo” se você nunca o viu.',
+   'Por fim, alguns objetos voltam e você toca na posição onde eles estavam e confirma.'
   ].forEach(t=>ol.append(el('li',null,t)));
   s.append(ol);
-  s.append(el('p','','Tente memorizar tanto os objetos quanto onde eles aparecem.'));
+  s.append(el('p','','Não existe pegadinha. Tente guardar tanto os objetos quanto o lugar de cada um. Se estiver em dúvida, responda com sua melhor impressão.'));
+  s.append(el('p','note','Você pode ampliar a tela com os dedos se precisar enxergar melhor.'));
   const b=el('button','btn primary','Fazer uma prática');
   b.onclick=()=> runPractice();
   s.append(b);
 }
 
 /* ---------- PRÁTICA ---------- */
+// prática guiada da resposta de item, com feedback e avanço só quando o participante acerta
+// (formato "forced-correct" recomendado para manter engajamento e clareza em baixa literacia)
+function practiceItemDemo(stim, correctChoice, hint){
+  return new Promise(resolve=>{
+    const s=scr(); tag('Prática');
+    const stage=el('div','obj-stage'); stage.append(renderStim(stim,220)); s.append(stage);
+    s.append(el('p','','Este objeto é…'));
+    const row=el('div','btn-row choice-row'); row.style.maxWidth='440px';
+    const bOld=el('button','btn','Vi este'), bSim=el('button','btn','Parecido'), bNew=el('button','btn','Novo');
+    row.append(bOld,bSim,bNew); s.append(row);
+    const label={old:'Vi este', similar:'Parecido', new:'Novo'};
+    const map={old:bOld, similar:bSim, new:bNew};
+    const fb=el('p','note',hint); s.append(fb);
+    let done=false;
+    function choose(ch){
+      if(done)return;
+      if(ch===correctChoice){
+        done=true; map[correctChoice].classList.add('primary');
+        bOld.disabled=bSim.disabled=bNew.disabled=true;
+        fb.textContent='Isso mesmo — resposta certa: “'+label[correctChoice]+'”. '+hint;
+        const nx=el('button','btn primary','Continuar'); nx.style.marginTop='6px'; nx.onclick=resolve; s.append(nx);
+      } else {
+        fb.textContent='Tente de novo. '+hint+' A resposta é “'+label[correctChoice]+'”.';
+      }
+    }
+    bOld.onclick=()=>choose('old'); bSim.onclick=()=>choose('similar'); bNew.onclick=()=>choose('new');
+  });
+}
 async function runPractice(){
   tag('Prática');
   for(let i=0;i<S.practice.length;i++){
     setProg(i, S.practice.length);
     await encodeTrial({stim:S.practice[i], cell: (i*7+3)%N_CELLS, practice:true});
   }
-  // um mini teste de item + escolha
+  // demonstração guiada das respostas que mais confundem: "Vi este" (idêntico) e "Parecido" (isca)
+  if(S.practiceDemo){
+    await practiceItemDemo(S.practiceDemo.old, 'old', 'Ele é idêntico a um objeto que você acabou de ver.');
+    await practiceItemDemo(S.practiceDemo.similar, 'similar', 'Ele lembra um objeto que você viu, mas tem uma pequena diferença.');
+  }
   const s=scr();
   s.append(el('h2','','Pronto para começar'));
-  s.append(el('p','','A prática terminou. A partir de agora não há mais feedback. Memorize os objetos e suas posições.'));
+  s.append(el('p','','A prática terminou. A partir de agora não há mais dicas. Memorize os objetos e onde cada um aparece.'));
   const b=el('button','btn primary','Iniciar teste');
   b.onclick=()=> phaseEncoding();
   s.append(b);
@@ -609,20 +660,30 @@ function placeTrial(tr){
     const s=scr(); tag('Onde estava?');
     const top=el('div','obj-stage'); top.style.width='min(46vw,22vh)'; top.style.height='min(46vw,22vh)';
     top.append(renderStim(tr.stim, 220)); s.append(top);
-    s.append(el('p','lead','Toque onde este objeto estava'));
-    let onset=now(), done=false;
+    s.append(el('p','lead','Toque onde este objeto estava e confirme'));
+    let onset=now(), done=false, picked=null, pickRt=null;
     const {scene}=buildScene(true,(cellId,cellEl)=>{
-      if(done)return; done=true;
+      if(done)return;
+      // seleção reversível: pode tocar outra célula antes de confirmar (evita erro por toque acidental)
       scene.querySelectorAll('.cell').forEach(c=>c.classList.remove('picked'));
       cellEl.classList.add('picked');
-      const rt=now()-onset;
-      const correct = cellId===tr.trueCell;
-      log({phase:'object_place', objIndex:tr.objIndex, chosen_cell:cellId, true_cell:tr.trueCell,
-           cell_correct:correct, grid_distance:+cellDist(cellId,tr.trueCell).toFixed(3), rt:+rt.toFixed(1)});
-      setTimeout(resolve, 220);
+      if(picked===null) pickRt = now()-onset;   // TR até a 1ª escolha
+      picked = cellId;
+      confirm.disabled = false;
     });
     scene.classList.add('compact');
     s.append(scene);
+    const confirm=el('button','btn primary','Confirmar'); confirm.disabled=true; confirm.style.marginTop='4px';
+    confirm.onclick=()=>{
+      if(done||picked===null)return; done=true;
+      const rt=now()-onset;
+      const correct = picked===tr.trueCell;
+      log({phase:'object_place', objIndex:tr.objIndex, chosen_cell:picked, true_cell:tr.trueCell,
+           cell_correct:correct, grid_distance:+cellDist(picked,tr.trueCell).toFixed(3),
+           rt:+rt.toFixed(1), rt_first: pickRt!=null?+pickRt.toFixed(1):null});
+      resolve();
+    };
+    s.append(confirm);
     onset=now();
   });
 }
@@ -743,7 +804,7 @@ function finish(){
   const row=el('tr'); row.append(el('td',null,'p("parecido"|isca)'));
   [1,2,3,4,5].forEach(b=>{ const rr=r.binRows.find(x=>x.bin===b); row.append(el('td',null, rr&&!Number.isNaN(rr.pSim)? rr.pSim.toFixed(2):'—')); });
   tbl.append(row); s.append(tbl);
-  s.append(el('p','note','Bin 5 = iscas quase idênticas (mais difíceis). Espera-se p("parecido") caindo do bin 1 ao 5; o ponto de queda estima o limiar de separação.'));
+  s.append(el('p','note','Convenção de Stark: bin 1 = iscas quase idênticas (mais difíceis) … bin 5 = bem diferentes (mais fáceis). O bin 1 não é amostrado nesta versão calibrada (por isso costuma aparecer "—"). Espera-se p("parecido") subindo dos bins mais fáceis (5) para os mais difíceis; o ponto de virada estima o limiar de separação.'));
 
   const btns=el('div','btn-row'); btns.style.marginTop='6px';
   const bJson=el('button','btn primary','Baixar dados (JSON)'); bJson.onclick=()=>downloadJSON();
@@ -767,7 +828,7 @@ function downloadJSON(){
   download(fname('json'), JSON.stringify(out,null,2), 'application/json');
 }
 function downloadCSV(){
-  const keys=['phase','role','objIndex','sim_bin','choice','response','response_intact','intact','correct','cell','chosen_cell','true_cell','cell_correct','grid_distance','a','b','roundness','rt','onset','t'];
+  const keys=['phase','role','objIndex','sim_bin','choice','response','response_intact','intact','correct','cell','chosen_cell','true_cell','cell_correct','grid_distance','a','b','roundness','rt','rt_first','onset','t'];
   const head=['participant_id','session_id','form',...keys].join(',');
   const rows=S.trials.map(tr=>{
     const base=[S.meta.participant_id,S.meta.session_id,S.meta.form];

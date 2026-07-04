@@ -69,13 +69,28 @@ Princípio transversal: **os desfechos primários são índices derivados que su
 Duração ~7–10 minutos, sessão única. Uma máquina de estados controla as fases:
 
 1. **Tela inicial** — identificação do participante, forma (A/B/C) e bloco relacional opcional.
-2. **Instruções + prática** — 3 objetos, com feedback (única etapa com feedback).
-3. **Codificação incidental** — 24 objetos, um por vez, cada um numa célula da grade (3750 ms + ISI 500 ms). Julgamento incidental ("Onde você encontraria este objeto? Dentro/fora de casa" — o clássico do MST; no fallback procedural vira "arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
-4. **Distrator** — comparação de magnitude numérica por ~45 s (esvazia a memória de trabalho).
-5. **Discriminação de item** — 36 tentativas ("Vi este / Parecido / Novo"), com atalhos de teclado `1/2/3` → **LDI, REC**.
-6. **Objeto-lugar** — os objetos-alvo reaparecem e o participante toca a célula onde estavam → **BND**.
+2. **Instruções + prática** — 3 objetos de codificação **+ prática guiada da resposta de item** ("Vi este / Parecido") com feedback e avanço só quando o participante acerta (formato *forced-correct*; única etapa com feedback).
+3. **Codificação incidental** — 26 objetos, um por vez, cada um numa célula da grade (3750 ms + ISI 500 ms). Julgamento incidental ("Onde você encontraria este objeto? Dentro/fora de casa" — o clássico do MST; no fallback procedural vira "arredondado ou pontudo?") força processamento profundo e disfarça o objetivo mnêmico. **A posição não é anunciada como testável** (codificação incidental do vínculo objeto–lugar).
+4. **Distrator** — comparação de magnitude numérica por ~20 s (esvazia a memória de trabalho; retenção curta reduz esquecimento/piso).
+5. **Discriminação de item** — 38 tentativas ("Vi este / Parecido / Novo"), com atalhos de teclado `1/2/3` → **LDI, REC**.
+6. **Objeto-lugar** — os objetos-alvo reaparecem numa grade **3×3** e o participante toca a célula onde estavam **e confirma** → **BND**.
 7. **Troca relacional** *(opcional)* — mini-cenas com 2 objetos; metade com posições trocadas ("estava assim?") → **d′ relacional**.
 8. **Resultados** — índices calculados na hora + exportação (JSON/CSV).
+
+---
+
+## Calibração de dificuldade (v2)
+
+A versão inicial era desnecessariamente difícil e desengajava o participante. Após revisão da literatura (MST/oMST de Stark; paradigma de localização de objetos LOCATO), a dificuldade foi reduzida **sem abrir mão dos princípios paradigmáticos** (separação de padrões DG/CA3 via LDI; ligação objeto–lugar CA1 via BND). Alavancas aplicadas, em ordem de impacto:
+
+1. **Grade objeto-lugar 4×6 (24 células) → 3×3 (9 células).** A chance de acerto passa de 1/24 (~4%) para 1/9 (~11%). É a maior redução de dificuldade e a mais bem embasada (o paradigma LOCATO reduziu conjuntos de 45→15 itens preservando a sensibilidade a CCL). Para desacoplar o tamanho da grade do nº de itens, **cada alvo recebe uma célula única e as iscas reutilizam células** (o local das iscas nunca é testado).
+2. **Retenção mais curta:** distrator de **45 s → 20 s**, o que eleva o LDI e reduz o efeito de piso em populações comprometidas.
+3. **Exclusão do bin de isca mais difícil (bin 1).** As iscas passam a ser amostradas dos **bins 2–5** (mantendo a curva graduada de separação), removendo as iscas quase idênticas — que são as mais difíceis e as mais contaminadas por percepção visual em idosos.
+4. **Tempo de codificação mantido longo (3750 ms).** Encurtá-lo *aumentaria* a dificuldade; foi preservado de propósito.
+5. **Contagens rebalanceadas: 8 alvos / 18 iscas / 12 novos.** O nº de iscas **subiu** (12 → 18) porque o LDI é calculado apenas sobre as iscas — reduzi-lo comprometeria a confiabilidade. A dificuldade cai pelas alavancas acima, não por cortar iscas.
+6. **Prática guiada *forced-correct*** das respostas "Vi este/Parecido" e **confirmação explícita** no toque da posição (evita erro por toque acidental).
+
+> **Correção importante — direção dos bins de similaridade.** A versão anterior interpretava **bin 5 como o mais difícil**. Isso está **invertido** em relação à convenção canônica de Stark, na qual **bin 1 = mais similar (mais difícil)** e **bin 5 = menos similar (mais fácil)**. Os *números* dos bins no `manifest.json` sempre bateram com o `Set1 bins.txt` do laboratório Stark (ex.: id 002 = bin 5, id 006 = bin 1); o que estava errado era a *interpretação* de dificuldade — no `binAmount` procedural, na legenda dos resultados e na nota do manifesto. Tudo foi corrigido para a convenção canônica. Consequentemente, o bin excluído para reduzir a dificuldade é o **bin 1** (não o 5).
 
 ---
 
@@ -85,7 +100,7 @@ O app usa, por padrão, um **banco de imagens fotográficas padronizadas** e rec
 
 ### Banco fotográfico (padrão): Mnemonic Similarity Task (MST)
 
-O coração do LDI são **iscas com similaridade graduada**. Elas vêm do conjunto **Set 1 do MST** (lab. Craig Stark, UC Irvine), em que cada objeto tem **dois exemplares perceptualmente semelhantes** (`NNNa.jpg` = estudo/alvo; `NNNb.jpg` = isca) e um **lure bin** empírico (1–5; bin 5 = quase idêntico/difícil, bin 1 = bem diferente). Estão inclusos os **128 pares com bin calibrado**, distribuídos pelos cinco níveis; as iscas de cada sessão são **sorteadas de forma estratificada** para cobrir os cinco bins. Ver [`stimuli/ATTRIBUTION.md`](stimuli/ATTRIBUTION.md) para fonte, licença e citação.
+O coração do LDI são **iscas com similaridade graduada**. Elas vêm do conjunto **Set 1 do MST** (lab. Craig Stark, UC Irvine), em que cada objeto tem **dois exemplares perceptualmente semelhantes** (`NNNa.jpg` = estudo/alvo; `NNNb.jpg` = isca) e um **lure bin** empírico (1–5, convenção canônica de Stark: **bin 1 = quase idêntico/difícil, bin 5 = bem diferente/fácil**). Estão inclusos os **128 pares com bin calibrado**, distribuídos pelos cinco níveis; as iscas de cada sessão são **sorteadas de forma estratificada** dos **bins 2–5** (o bin 1, mais difícil, é omitido nesta versão calibrada). Ver [`stimuli/ATTRIBUTION.md`](stimuli/ATTRIBUTION.md) para fonte, licença e citação.
 
 O banco é declarado em `stimuli/manifest.json`:
 
@@ -108,8 +123,9 @@ Vantagens desta abordagem para um protótipo:
 
 **Desvios em relação à especificação de projeto** (todos ajustáveis em [`CONFIG`](#configuração-config)):
 
-- grade **4×6 = 24 células** (em vez de 5×3 = 15), para caber 24 objetos em posições únicas;
-- **12 alvos / 12 iscas / 12 novos** (em vez de 16/16/16), mantendo consistência entre nº codificado e nº testado;
+- grade **3×3 = 9 células** para a tarefa objeto-lugar (alvos em células únicas; iscas reutilizam células), reduzindo a carga de ligação;
+- **8 alvos / 18 iscas / 12 novos** — iscas acima do piso psicométrico do LDI (ver [Calibração de dificuldade](#calibração-de-dificuldade-v2));
+- iscas amostradas dos **bins 2–5** (bin 1 omitido);
 - julgamento incidental "dentro/fora de casa" (canônico do MST) com objetos reais; no fallback procedural, tarefa perceptual "arredondado/pontudo", já que os estímulos são abstratos.
 
 ---
@@ -174,21 +190,22 @@ Todos os parâmetros ficam no objeto `CONFIG`, no topo do `<script>` em `index.h
 
 | Chave | Padrão | Descrição |
 |---|---|---|
-| `cols`, `rows` | `4`, `6` | Dimensões da grade (nº de células = `cols × rows`) |
-| `encodeMs` | `3750` | Duração de exibição de cada objeto na codificação (ms) |
+| `cols`, `rows` | `3`, `3` | Dimensões da grade (nº de células = `cols × rows`) |
+| `encodeMs` | `3750` | Duração de exibição de cada objeto na codificação (ms) — mantido longo de propósito |
 | `isiMs` | `500` | Intervalo entre estímulos na codificação (ms) |
-| `nTargets` | `12` | Itens repetidos idênticos (viram alvos no teste e no objeto-lugar) |
-| `nLures` | `12` | Itens estudados reapresentados como isca semelhante |
+| `nTargets` | `8` | Itens repetidos idênticos (alvos no teste e no objeto-lugar). **Deve ser ≤ `cols × rows`** (célula única por alvo) |
+| `nLures` | `18` | Itens estudados reapresentados como isca semelhante (mantido acima do piso do LDI) |
 | `nFoils` | `12` | Objetos novos (distratores) |
-| `distractorMs` | `45000` | Duração da tarefa distratora (ms) |
+| `distractorMs` | `20000` | Duração da tarefa distratora (ms) |
 | `practiceN` | `3` | Nº de objetos na prática |
-| `poolSize` | `60` | Tamanho do banco de objetos gerados |
-| `binAmount` | `{5:.08, 4:.15, 3:.24, 2:.34, 1:.46}` | Mapeia bin → magnitude de perturbação da isca (menor = mais parecido) |
+| `poolSize` | `60` | Tamanho do banco de objetos gerados (fallback procedural) |
+| `binAmount` | `{1:.08, 2:.15, 3:.24, 4:.34, 5:.46}` | Bin → magnitude de perturbação da isca no fallback procedural (**bin 1 = menor perturbação = mais difícil**) |
+| `lureBins` | `[2,3,4,5]` | Bins amostrados para as iscas (omite o bin 1, mais difícil) |
 | `enableRelational` | `false` | Ativa o bloco relacional (também marcável na tela inicial) |
 | `relationalTrials` | `6` | Nº de tentativas do bloco relacional |
 | `interTrialMs` | `350` | Intervalo entre tentativas nos testes |
 
-Restrição: `nTargets + nLures` (itens codificados) deve ser ≤ `cols × rows` e ≤ `poolSize`.
+Restrições: `nTargets` ≤ `cols × rows` (cada alvo precisa de célula única); `nTargets + nLures + nFoils + practiceN` ≤ tamanho da menor partição de forma do banco (≈42 no banco MST de 128 pares); tudo ≤ `poolSize` no fallback procedural.
 
 ---
 
